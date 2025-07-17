@@ -1,0 +1,145 @@
+Create a complete e-learning platform with the following specifications:
+
+  ## Project Structure
+  - Full-stack web application with separate frontend and backend
+  - Frontend: Next.js with React and Tailwind CSS
+  - Backend: Node.js with Express or NestJS (your choice)
+  - Database: Choose the best option (PostgreSQL, MongoDB, or SQLite)
+
+  ## Language & Localization
+  - **All text must be in Thai language**
+  - UI labels, buttons, messages, and content in Thai
+  - Error messages and success notifications in Thai
+  - Thai font family: 'Sarabun', sans-serif
+
+  ## Frontend Features
+  ### Homepage (/)
+  - Header with logo, search bar, and navigation
+  - Hamburger menu for mobile
+  - Login/Register buttons (when not logged in)
+  - User greeting and logout button (when logged in)
+  - Sidebar with navigation: หน้าแรก, หลักสูตร, เกี่ยวกับเรา
+  - Main content area with course cards
+  - Course section titled "การอ่าน" with description: "พื้นฐานการอ่านของเด็กๆ ด้วยหลักสูตรที่ถูกออกแบบมาจากครูชำนาญการ"
+  - 3 course cards with title "อ่านหนังสือแบบไหนง่ายที่สุด"
+  - Each card shows "เคล็ดลับการอ่านหนังสือง่ายๆภายใน 3 นาที" and "3 นาที 32 วินาที"
+
+  ### Authentication Pages
+  #### Login Page (/login/LoginPage)
+  - Title: "เข้าสู่ระบบ"
+  - Description: "กรอกข้อมูลเพื่อเข้าสู่ระบบ"
+  - Email field: "อีเมล"
+  - Password field: "รหัสผ่าน"
+  - Submit button: "เข้าสู่ระบบ"
+  - Register link: "หากท่านยังไม่ได้ลงทะเบียน คลิ๊ก ลงทะเบียน"
+  - Google login button: "เข้าสู่ระบบด้วย Google"
+  - Back to home link: "← กลับสู่หน้าแรก"
+
+  #### Register Page (/login/RegisterPage)
+  - Title: "สมัครสมาชิก"
+  - Description: "กรอกข้อมูลเพื่อสมัครสมาชิก"
+  - Fields: ชื่อจริง, นามสกุล, อีเมล, รหัสผ่าน, ยืนยันรหัสผ่าน
+  - Role selection: นักเรียน (STUDENT) / ครู (TEACHER)
+  - Submit button: "สมัครสมาชิก"
+  - Login link: "มีบัญชีอยู่แล้ว? เข้าสู่ระบบ"
+  - Back to home link: "← กลับสู่หน้าแรก"
+
+  ## Backend Features
+  ### Authentication System
+  - User registration with validation
+  - User login with password hashing
+  - JWT or session-based authentication
+  - Password requirements: minimum 6 characters
+
+  ### Database Schema
+  User model with fields:
+  - id (primary key)
+  - email (unique, required)
+  - password (hashed, required)
+  - firstName (required)
+  - lastName (required)
+  - role (STUDENT/TEACHER, default: STUDENT)
+  - isActive (boolean, default: true)
+  - createdAt, updatedAt timestamps
+
+  ### API Endpoints
+  - POST /auth/register - User registration
+  - POST /auth/login - User login
+  - GET /users - Get all users
+  - POST /users - Create user
+  - GET /users/:id - Get user by ID
+  - PATCH /users/:id - Update user
+  - DELETE /users/:id - Delete user
+
+  ## UI/UX Requirements
+  ### Color Scheme
+  - Primary: Indigo/Blue tones
+  - Background: Gray-100
+  - Cards: White with shadow
+  - Success messages: Green
+  - Error messages: Red
+  - Buttons: Hover effects and transitions
+
+  ### Responsive Design
+  - Mobile-first approach
+  - Collapsible sidebar on mobile
+  - Responsive grid for course cards
+  - Proper spacing and typography
+
+  ### Interactive Elements
+  - All buttons must be clickable with proper handlers
+  - Form validation with error messages
+  - Loading states during API calls
+  - Success/error notifications
+  - Smooth transitions and hover effects
+
+  ## Technical Requirements
+  ### Frontend
+  - React hooks (useState, useEffect, useRouter)
+  - Form handling with validation
+  - Local storage for user sessions
+  - Error boundary handling
+  - API integration with fetch/axios
+
+  ### Backend
+  - Input validation and sanitization
+  - Password hashing (bcrypt)
+  - CORS configuration
+  - Error handling middleware
+  - Environment variables for database connection
+  - Proper HTTP status codes
+
+  ### Database
+  - User authentication and authorization
+  - Data validation at database level
+  - Proper indexing for performance
+  - Migration scripts if needed
+
+  ## Deployment Ready
+  - Environment configuration
+  - Production-ready security
+  - Database connection handling
+  - Error logging
+  - Performance optimization
+
+  ## File Structure
+  project/
+  ├── frontend/
+  │   ├── src/
+  │   │   ├── pages/
+  │   │   │   ├── index.js
+  │   │   │   └── login/
+  │   │   │       ├── LoginPage.js
+  │   │   │       └── RegisterPage.js
+  │   │   └── components/
+  │   └── package.json
+  ├── backend/
+  │   ├── src/
+  │   │   ├── auth/
+  │   │   ├── users/
+  │   │   └── main.js
+  │   └── package.json
+  └── README.md
+
+  Make sure everything works together seamlessly with proper frontend-backend integration, user authentication
+  flow, and all buttons/forms functional.
