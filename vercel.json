@@ -7,6 +7,13 @@
       "config": {
         "maxDuration": 30
       }
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/public"
+      }
     }
   ],
   "routes": [
@@ -15,11 +22,14 @@
       "dest": "/api/index.ts"
     },
     {
-      "src": "/(.*)",
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|woff|woff2|ttf|eot))",
       "dest": "/dist/public/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/public/index.html"
     }
   ],
-  "outputDirectory": "dist/public",
   "installCommand": "npm install && npx prisma generate",
   "buildCommand": "npm run vercel-build"
 }
