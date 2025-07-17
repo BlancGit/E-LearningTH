@@ -11,7 +11,7 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "vercel-build": "npx prisma generate && npx prisma db push && vite build",
+    "vercel-build": "npx prisma generate && vite build",
     "postinstall": "prisma generate"
   },
   "dependencies": {

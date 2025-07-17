@@ -21,8 +21,5 @@
   ],
   "outputDirectory": "dist/public",
   "installCommand": "npm install && npx prisma generate",
-  "buildCommand": "npm run vercel-build",
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "buildCommand": "npm run vercel-build"
 }
