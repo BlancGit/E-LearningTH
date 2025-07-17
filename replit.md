@@ -28,10 +28,10 @@ Preferred communication style: Simple, everyday language.
 - **Development**: Hot reloading with Vite integration
 
 ### Database Architecture
-- **Database**: PostgreSQL (configured for Neon serverless)
-- **ORM**: Drizzle ORM with schema-first approach
-- **Migrations**: Drizzle Kit for database schema management
-- **Connection**: Connection pooling with @neondatabase/serverless
+- **Database**: PostgreSQL 
+- **ORM**: Prisma ORM with schema-first approach
+- **Migrations**: Prisma Migrate for database schema management
+- **Connection**: Prisma Client with connection pooling
 
 ## Key Components
 
@@ -81,7 +81,7 @@ Preferred communication style: Simple, everyday language.
 - **HTTP Client**: Fetch API with custom wrapper functions
 
 ### Backend Dependencies
-- **Database**: Neon PostgreSQL for serverless database hosting
+- **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: JWT and bcrypt for secure authentication
 - **Validation**: Zod for runtime type validation
 - **Development**: tsx for TypeScript execution
@@ -101,12 +101,12 @@ Preferred communication style: Simple, everyday language.
 ### Production Build
 - Frontend built with Vite to static assets
 - Backend bundled with ESBuild to single Node.js executable
-- Database migrations managed through Drizzle Kit
+- Database migrations managed through Prisma Migrate
 - Environment variables for database connections and JWT secrets
 
 ### Database Management
 - Schema defined in shared TypeScript file
-- Migrations generated and applied using Drizzle Kit
+- Migrations generated and applied using Prisma Migrate
 - Connection pooling for production performance
 - Environment-based configuration for different deployment stages
 

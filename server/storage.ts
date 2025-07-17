@@ -1,6 +1,5 @@
-import { users, type User, type InsertUser } from "@shared/schema";
-import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { type User, type InsertUser } from "@shared/schema";
+import { prisma } from "./db";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -11,25 +10,29 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
     return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const { confirmPassword, ...userData } = insertUser;
+    const user = await prisma.user.create({
+      data: userData,
+    });
     return user;
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
+    return await prisma.user.findMany();
   }
 }
 
