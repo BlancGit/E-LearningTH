@@ -3,7 +3,30 @@ import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { insertUserSchema, loginSchema, createCourseSchema, type User } from '../shared/schema';
+import { z } from 'zod';
+
+// Inline schema definitions to avoid module resolution issues
+const insertUserSchema = z.object({
+  email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง"),
+  password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
+  firstName: z.string().min(1, "กรุณากรอกชื่อจริง"),
+  lastName: z.string().min(1, "กรุณากรอกนามสกุล"),
+  role: z.enum(["STUDENT", "TEACHER"]).default("STUDENT"),
+  confirmPassword: z.string().optional(),
+}).refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
+  message: "รหัสผ่านไม่ตรงกัน",
+  path: ["confirmPassword"],
+});
+
+const loginSchema = z.object({
+  email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง"),
+  password: z.string().min(1, "กรุณากรอกรหัสผ่าน"),
+});
+
+const createCourseSchema = z.object({
+  title: z.string().min(1, "กรุณากรอกชื่อหลักสูตร"),
+  description: z.string().optional(),
+});
 
 const app = express();
 app.use(express.json());

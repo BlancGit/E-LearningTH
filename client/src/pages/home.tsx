@@ -53,11 +53,11 @@ export default function Home() {
   const handleCourseEnroll = (courseId: number) => {
     if (!user) {
       // Redirect to login if not authenticated
-      window.location.href = '/login';
+      setLocation('/login');
       return;
     }
-    // Handle course enrollment
-    console.log('Enrolling in course:', courseId);
+    // Redirect to course page if authenticated
+    setLocation(`/course/${courseId}`);
   };
 
   return (
