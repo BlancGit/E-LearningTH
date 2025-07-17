@@ -21,5 +21,101 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // Relations
+  courses       Course[]
+  testScores    TestScore[]
+  courseProgress CourseProgress[]
+
   @@map("users")
+}
+
+model Course {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  teacherId   Int      @map("teacher_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  teacher        User @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  tests          Test[]
+  courseProgress CourseProgress[]
+
+  @@map("courses")
+}
+
+model Test {
+  id           Int     @id @default(autoincrement())
+  courseId     Int     @map("course_id")
+  type         String  // "pre" or "post"
+  passingScore Int?    @map("passing_score") // Only for post-tests
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  course     Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions  Question[]
+  testScores TestScore[]
+
+  @@map("tests")
+}
+
+model Question {
+  id           Int      @id @default(autoincrement())
+  testId       Int      @map("test_id")
+  questionText String   @map("question_text")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  test    Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+  options Option[]
+
+  @@map("questions")
+}
+
+model Option {
+  id         Int     @id @default(autoincrement())
+  questionId Int     @map("question_id")
+  text       String
+  isCorrect  Boolean @default(false) @map("is_correct")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("options")
+}
+
+model TestScore {
+  id       Int      @id @default(autoincrement())
+  testId   Int      @map("test_id")
+  userId   Int      @map("user_id")
+  score    Int
+  takenAt  DateTime @default(now()) @map("taken_at")
+
+  // Relations
+  test Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([testId, userId])
+  @@map("test_scores")
+}
+
+model CourseProgress {
+  id       Int    @id @default(autoincrement())
+  courseId Int    @map("course_id")
+  userId   Int    @map("user_id")
+  status   String @default("not started") // "not started", "in progress", "สำเร็จแล้ว"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+  @@map("course_progress")
 }

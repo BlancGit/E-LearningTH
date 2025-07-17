@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, type User } from "@shared/schema";
+import { insertUserSchema, loginSchema, createCourseSchema, type User } from "@shared/schema";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -157,6 +157,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { password, ...userWithoutPassword } = user;
       res.json({ user: userWithoutPassword });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  // Course routes
+  app.get('/api/courses', async (req, res) => {
+    try {
+      const courses = await storage.getAllCourses();
+      res.json({ courses });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.get('/api/courses/teacher/:teacherId', authenticateToken, async (req, res) => {
+    try {
+      const teacherId = parseInt(req.params.teacherId);
+      const courses = await storage.getCoursesByTeacher(teacherId);
+      res.json({ courses });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.post('/api/courses', authenticateToken, async (req: any, res) => {
+    try {
+      // Check if user is a teacher
+      if (req.user.role !== 'TEACHER') {
+        return res.status(403).json({ message: 'เฉพาะครูเท่านั้นที่สามารถสร้างหลักสูตรได้' });
+      }
+
+      const validatedData = createCourseSchema.parse(req.body);
+      const courseData = {
+        ...validatedData,
+        teacherId: req.user.userId,
+      };
+
+      const course = await storage.createCourse(courseData);
+      res.status(201).json({ 
+        message: 'สร้างหลักสูตรสำเร็จ',
+        course 
+      });
+    } catch (error: any) {
+      if (error.issues) {
+        return res.status(400).json({ 
+          message: 'ข้อมูลไม่ถูกต้อง',
+          errors: error.issues 
+        });
+      }
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.get('/api/courses/:id', async (req, res) => {
+    try {
+      const courseId = parseInt(req.params.id);
+      const course = await storage.getCourse(courseId);
+      
+      if (!course) {
+        return res.status(404).json({ message: 'ไม่พบหลักสูตร' });
+      }
+
+      res.json({ course });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.put('/api/courses/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const courseId = parseInt(req.params.id);
+      const course = await storage.getCourse(courseId);
+      
+      if (!course) {
+        return res.status(404).json({ message: 'ไม่พบหลักสูตร' });
+      }
+
+      // Check if user is the course owner or admin
+      if (req.user.role !== 'TEACHER' || course.teacherId !== req.user.userId) {
+        return res.status(403).json({ message: 'คุณไม่มีสิทธิ์แก้ไขหลักสูตรนี้' });
+      }
+
+      const validatedData = createCourseSchema.parse(req.body);
+      const updatedCourse = await storage.updateCourse(courseId, validatedData);
+      
+      res.json({ 
+        message: 'อัปเดตหลักสูตรสำเร็จ',
+        course: updatedCourse 
+      });
+    } catch (error: any) {
+      if (error.issues) {
+        return res.status(400).json({ 
+          message: 'ข้อมูลไม่ถูกต้อง',
+          errors: error.issues 
+        });
+      }
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.delete('/api/courses/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const courseId = parseInt(req.params.id);
+      const course = await storage.getCourse(courseId);
+      
+      if (!course) {
+        return res.status(404).json({ message: 'ไม่พบหลักสูตร' });
+      }
+
+      // Check if user is the course owner or admin
+      if (req.user.role !== 'TEACHER' || course.teacherId !== req.user.userId) {
+        return res.status(403).json({ message: 'คุณไม่มีสิทธิ์ลบหลักสูตรนี้' });
+      }
+
+      await storage.deleteCourse(courseId);
+      res.json({ message: 'ลบหลักสูตรสำเร็จ' });
     } catch (error) {
       res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
     }

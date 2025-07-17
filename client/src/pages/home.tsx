@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Search } from "lucide-react";
 import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
@@ -6,6 +7,7 @@ import CourseCard from "@/components/course-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AuthService } from "@/lib/auth";
+import type { User } from "@shared/schema";
 
 const courses = [
   {
@@ -33,12 +35,20 @@ const courses = [
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     const currentUser = AuthService.getUser();
     setUser(currentUser);
-  }, []);
+    
+    // Redirect based on user role
+    if (currentUser?.role === "TEACHER") {
+      setLocation("/teacher/dashboard");
+    } else if (currentUser?.role === "STUDENT") {
+      setLocation("/courses");
+    }
+  }, [setLocation]);
 
   const handleCourseEnroll = (courseId: number) => {
     if (!user) {

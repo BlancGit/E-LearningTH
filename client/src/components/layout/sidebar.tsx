@@ -11,7 +11,6 @@ interface SidebarProps {
 const navigation = [
   { name: "หน้าแรก", href: "/", icon: Home },
   { name: "หลักสูตร", href: "/courses", icon: Book },
-  { name: "เกี่ยวกับเรา", href: "/about", icon: Info },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
