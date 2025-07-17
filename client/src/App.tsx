@@ -9,6 +9,12 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Courses from "@/pages/courses";
 import TeacherDashboard from "@/pages/teacher-dashboard";
+import TeacherCreateCourse from "@/pages/teacher-create-course";
+import TeacherCourseDetail from "@/pages/teacher-course-detail";
+import TeacherStudents from "@/pages/teacher-students";
+import TeacherAnalytics from "@/pages/teacher-analytics";
+import StudentCourse from "@/pages/student-course";
+import TakeTest from "@/pages/take-test";
 
 function Router() {
   return (
@@ -18,6 +24,12 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/courses" component={Courses} />
       <Route path="/teacher/dashboard" component={TeacherDashboard} />
+      <Route path="/teacher/create-course" component={TeacherCreateCourse} />
+      <Route path="/teacher/course/:id" component={TeacherCourseDetail} />
+      <Route path="/teacher/students" component={TeacherStudents} />
+      <Route path="/teacher/analytics" component={TeacherAnalytics} />
+      <Route path="/course/:id" component={StudentCourse} />
+      <Route path="/test/:id" component={TakeTest} />
       <Route component={NotFound} />
     </Switch>
   );

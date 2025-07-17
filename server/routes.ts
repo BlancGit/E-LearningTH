@@ -279,6 +279,191 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test routes
+  app.get('/api/courses/:courseId/tests', async (req, res) => {
+    try {
+      const courseId = parseInt(req.params.courseId);
+      const tests = await storage.getTestsByCourse(courseId);
+      res.json({ tests });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.post('/api/courses/:courseId/tests', authenticateToken, async (req: any, res) => {
+    try {
+      const courseId = parseInt(req.params.courseId);
+      const course = await storage.getCourse(courseId);
+      
+      if (!course) {
+        return res.status(404).json({ message: 'ไม่พบหลักสูตร' });
+      }
+
+      if (req.user.role !== 'TEACHER' || course.teacherId !== req.user.userId) {
+        return res.status(403).json({ message: 'คุณไม่มีสิทธิ์สร้างแบบทดสอบในหลักสูตรนี้' });
+      }
+
+      const { type, passingScore, questions } = req.body;
+      
+      // Create test
+      const test = await storage.createTest({ courseId, type, passingScore });
+      
+      // Create questions and options
+      for (const questionData of questions) {
+        const question = await storage.createQuestion({
+          testId: test.id,
+          questionText: questionData.questionText,
+        });
+        
+        for (const optionData of questionData.options) {
+          await storage.createOption({
+            questionId: question.id,
+            text: optionData.text,
+            isCorrect: optionData.isCorrect,
+          });
+        }
+      }
+
+      res.status(201).json({ message: 'สร้างแบบทดสอบสำเร็จ', test });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.get('/api/tests/:testId/questions', async (req, res) => {
+    try {
+      const testId = parseInt(req.params.testId);
+      const questions = await storage.getQuestionsByTest(testId);
+      res.json({ questions });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.post('/api/tests/:testId/submit', authenticateToken, async (req: any, res) => {
+    try {
+      const testId = parseInt(req.params.testId);
+      const { answers } = req.body;
+      
+      // Get test questions with options
+      const questions = await storage.getQuestionsByTest(testId);
+      
+      // Calculate score
+      let correctAnswers = 0;
+      const totalQuestions = questions.length;
+      
+      for (const answer of answers) {
+        const question = questions.find(q => q.id === answer.questionId);
+        if (question) {
+          const options = await storage.getOptionsByQuestion(question.id);
+          const selectedOption = options.find(o => o.id === answer.selectedOptionId);
+          if (selectedOption?.isCorrect) {
+            correctAnswers++;
+          }
+        }
+      }
+      
+      const score = Math.round((correctAnswers / totalQuestions) * 100);
+      
+      // Save score
+      await storage.createTestScore({
+        testId,
+        userId: req.user.userId,
+        score,
+      });
+      
+      // Get test and course information
+      const test = await storage.getTest(testId);
+      
+      if (test) {
+        // If this is a post-test and the student passed, update course progress
+        if (test.type === 'post' && score >= (test.passingScore || 70)) {
+          await storage.updateCourseProgress(test.courseId, req.user.userId, 'สำเร็จแล้ว');
+        } else if (test.type === 'pre') {
+          // If this is a pre-test, set status to in progress
+          await storage.updateCourseProgress(test.courseId, req.user.userId, 'in progress');
+        }
+      }
+      
+      res.json({ score, correctAnswers, totalQuestions });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.get('/api/tests/:testId/scores', authenticateToken, async (req: any, res) => {
+    try {
+      const testId = parseInt(req.params.testId);
+      const test = await storage.getTest(testId);
+      
+      if (!test) {
+        return res.status(404).json({ message: 'ไม่พบแบบทดสอบ' });
+      }
+
+      const course = await storage.getCourse(test.courseId);
+      if (req.user.role !== 'TEACHER' || course?.teacherId !== req.user.userId) {
+        return res.status(403).json({ message: 'คุณไม่มีสิทธิ์ดูคะแนนนี้' });
+      }
+
+      const scores = await storage.getTestScoresByTest(testId);
+      res.json({ scores });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.get('/api/users/:userId/scores', authenticateToken, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Students can only see their own scores
+      if (req.user.role === 'STUDENT' && req.user.userId !== userId) {
+        return res.status(403).json({ message: 'คุณไม่มีสิทธิ์ดูคะแนนของผู้อื่น' });
+      }
+
+      const scores = await storage.getTestScoresByUser(userId);
+      res.json({ scores });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  // Course progress routes
+  app.get('/api/courses/:courseId/progress/:userId', authenticateToken, async (req: any, res) => {
+    try {
+      const courseId = parseInt(req.params.courseId);
+      const userId = parseInt(req.params.userId);
+      
+      // Students can only see their own progress
+      if (req.user.role === 'STUDENT' && req.user.userId !== userId) {
+        return res.status(403).json({ message: 'คุณไม่มีสิทธิ์ดูความคืบหน้าของผู้อื่น' });
+      }
+
+      const progress = await storage.getCourseProgress(courseId, userId);
+      res.json({ progress });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
+  app.put('/api/courses/:courseId/progress/:userId', authenticateToken, async (req: any, res) => {
+    try {
+      const courseId = parseInt(req.params.courseId);
+      const userId = parseInt(req.params.userId);
+      const { status } = req.body;
+      
+      // Students can only update their own progress
+      if (req.user.role === 'STUDENT' && req.user.userId !== userId) {
+        return res.status(403).json({ message: 'คุณไม่มีสิทธิ์อัปเดตความคืบหน้าของผู้อื่น' });
+      }
+
+      const progress = await storage.updateCourseProgress(courseId, userId, status);
+      res.json({ progress });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -18,6 +18,7 @@ export interface IStorage {
   
   // Test methods
   getTestsByCourse(courseId: number): Promise<Test[]>;
+  getTest(id: number): Promise<Test | undefined>;
   createTest(testData: { courseId: number; type: string; passingScore?: number }): Promise<Test>;
   deleteTest(id: number): Promise<void>;
   
@@ -157,6 +158,16 @@ export class DatabaseStorage implements IStorage {
     await prisma.test.delete({
       where: { id },
     });
+  }
+
+  async getTest(id: number): Promise<Test | undefined> {
+    const test = await prisma.test.findUnique({
+      where: { id },
+      include: {
+        course: true,
+      },
+    });
+    return test || undefined;
   }
 
   // Question methods
