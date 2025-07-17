@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, type User } from "@shared/schema";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -136,7 +136,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/users', authenticateToken, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
-      const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+      const usersWithoutPasswords = users.map((user: User) => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
       res.json({ users: usersWithoutPasswords });
     } catch (error) {
       res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
